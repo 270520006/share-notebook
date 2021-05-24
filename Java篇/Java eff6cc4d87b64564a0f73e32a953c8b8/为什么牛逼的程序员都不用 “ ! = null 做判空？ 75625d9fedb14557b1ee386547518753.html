@@ -1,0 +1,634 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><title>为什么牛逼的程序员都不用 “ ! = null &quot; 做判空？</title><style>
+/* webkit printing magic: print all background colors */
+html {
+	-webkit-print-color-adjust: exact;
+}
+* {
+	box-sizing: border-box;
+	-webkit-print-color-adjust: exact;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+@media only screen {
+	body {
+		margin: 2em auto;
+		max-width: 900px;
+		color: rgb(55, 53, 47);
+	}
+}
+
+body {
+	line-height: 1.5;
+	white-space: pre-wrap;
+}
+
+a,
+a.visited {
+	color: inherit;
+	text-decoration: underline;
+}
+
+.pdf-relative-link-path {
+	font-size: 80%;
+	color: #444;
+}
+
+h1,
+h2,
+h3 {
+	letter-spacing: -0.01em;
+	line-height: 1.2;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.page-title {
+	font-size: 2.5rem;
+	font-weight: 700;
+	margin-top: 0;
+	margin-bottom: 0.75em;
+}
+
+h1 {
+	font-size: 1.875rem;
+	margin-top: 1.875rem;
+}
+
+h2 {
+	font-size: 1.5rem;
+	margin-top: 1.5rem;
+}
+
+h3 {
+	font-size: 1.25rem;
+	margin-top: 1.25rem;
+}
+
+.source {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	padding: 1.5em;
+	word-break: break-all;
+}
+
+.callout {
+	border-radius: 3px;
+	padding: 1rem;
+}
+
+figure {
+	margin: 1.25em 0;
+	page-break-inside: avoid;
+}
+
+figcaption {
+	opacity: 0.5;
+	font-size: 85%;
+	margin-top: 0.5em;
+}
+
+mark {
+	background-color: transparent;
+}
+
+.indented {
+	padding-left: 1.5em;
+}
+
+hr {
+	background: transparent;
+	display: block;
+	width: 100%;
+	height: 1px;
+	visibility: visible;
+	border: none;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.09);
+}
+
+img {
+	max-width: 100%;
+}
+
+@media only print {
+	img {
+		max-height: 100vh;
+		object-fit: contain;
+	}
+}
+
+@page {
+	margin: 1in;
+}
+
+.collection-content {
+	font-size: 0.875rem;
+}
+
+.column-list {
+	display: flex;
+	justify-content: space-between;
+}
+
+.column {
+	padding: 0 1em;
+}
+
+.column:first-child {
+	padding-left: 0;
+}
+
+.column:last-child {
+	padding-right: 0;
+}
+
+.table_of_contents-item {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.3;
+	padding: 0.125rem;
+}
+
+.table_of_contents-indent-1 {
+	margin-left: 1.5rem;
+}
+
+.table_of_contents-indent-2 {
+	margin-left: 3rem;
+}
+
+.table_of_contents-indent-3 {
+	margin-left: 4.5rem;
+}
+
+.table_of_contents-link {
+	text-decoration: none;
+	opacity: 0.7;
+	border-bottom: 1px solid rgba(55, 53, 47, 0.18);
+}
+
+table,
+th,
+td {
+	border: 1px solid rgba(55, 53, 47, 0.09);
+	border-collapse: collapse;
+}
+
+table {
+	border-left: none;
+	border-right: none;
+}
+
+th,
+td {
+	font-weight: normal;
+	padding: 0.25em 0.5em;
+	line-height: 1.5;
+	min-height: 1.5em;
+	text-align: left;
+}
+
+th {
+	color: rgba(55, 53, 47, 0.6);
+}
+
+ol,
+ul {
+	margin: 0;
+	margin-block-start: 0.6em;
+	margin-block-end: 0.6em;
+}
+
+li > ol:first-child,
+li > ul:first-child {
+	margin-block-start: 0.6em;
+}
+
+ul > li {
+	list-style: disc;
+}
+
+ul.to-do-list {
+	text-indent: -1.7em;
+}
+
+ul.to-do-list > li {
+	list-style: none;
+}
+
+.to-do-children-checked {
+	text-decoration: line-through;
+	opacity: 0.375;
+}
+
+ul.toggle > li {
+	list-style: none;
+}
+
+ul {
+	padding-inline-start: 1.7em;
+}
+
+ul > li {
+	padding-left: 0.1em;
+}
+
+ol {
+	padding-inline-start: 1.6em;
+}
+
+ol > li {
+	padding-left: 0.2em;
+}
+
+.mono ol {
+	padding-inline-start: 2em;
+}
+
+.mono ol > li {
+	text-indent: -0.4em;
+}
+
+.toggle {
+	padding-inline-start: 0em;
+	list-style-type: none;
+}
+
+/* Indent toggle children */
+.toggle > li > details {
+	padding-left: 1.7em;
+}
+
+.toggle > li > details > summary {
+	margin-left: -1.1em;
+}
+
+.selected-value {
+	display: inline-block;
+	padding: 0 0.5em;
+	background: rgba(206, 205, 202, 0.5);
+	border-radius: 3px;
+	margin-right: 0.5em;
+	margin-top: 0.3em;
+	margin-bottom: 0.3em;
+	white-space: nowrap;
+}
+
+.collection-title {
+	display: inline-block;
+	margin-right: 1em;
+}
+
+time {
+	opacity: 0.5;
+}
+
+.icon {
+	display: inline-block;
+	max-width: 1.2em;
+	max-height: 1.2em;
+	text-decoration: none;
+	vertical-align: text-bottom;
+	margin-right: 0.5em;
+}
+
+img.icon {
+	border-radius: 3px;
+}
+
+.user-icon {
+	width: 1.5em;
+	height: 1.5em;
+	border-radius: 100%;
+	margin-right: 0.5rem;
+}
+
+.user-icon-inner {
+	font-size: 0.8em;
+}
+
+.text-icon {
+	border: 1px solid #000;
+	text-align: center;
+}
+
+.page-cover-image {
+	display: block;
+	object-fit: cover;
+	width: 100%;
+	height: 30vh;
+}
+
+.page-header-icon {
+	font-size: 3rem;
+	margin-bottom: 1rem;
+}
+
+.page-header-icon-with-cover {
+	margin-top: -0.72em;
+	margin-left: 0.07em;
+}
+
+.page-header-icon img {
+	border-radius: 3px;
+}
+
+.link-to-page {
+	margin: 1em 0;
+	padding: 0;
+	border: none;
+	font-weight: 500;
+}
+
+p > .user {
+	opacity: 0.5;
+}
+
+td > .user,
+td > time {
+	white-space: nowrap;
+}
+
+input[type="checkbox"] {
+	transform: scale(1.5);
+	margin-right: 0.6em;
+	vertical-align: middle;
+}
+
+p {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.image {
+	border: none;
+	margin: 1.5em 0;
+	padding: 0;
+	border-radius: 0;
+	text-align: center;
+}
+
+.code,
+code {
+	background: rgba(135, 131, 120, 0.15);
+	border-radius: 3px;
+	padding: 0.2em 0.4em;
+	border-radius: 3px;
+	font-size: 85%;
+	tab-size: 2;
+}
+
+code {
+	color: #eb5757;
+}
+
+.code {
+	padding: 1.5em 1em;
+}
+
+.code-wrap {
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.code > code {
+	background: none;
+	padding: 0;
+	font-size: 100%;
+	color: inherit;
+}
+
+blockquote {
+	font-size: 1.25em;
+	margin: 1em 0;
+	padding-left: 1em;
+	border-left: 3px solid rgb(55, 53, 47);
+}
+
+.bookmark {
+	text-decoration: none;
+	max-height: 8em;
+	padding: 0;
+	display: flex;
+	width: 100%;
+	align-items: stretch;
+}
+
+.bookmark-title {
+	font-size: 0.85em;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	height: 1.75em;
+	white-space: nowrap;
+}
+
+.bookmark-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.bookmark-info {
+	flex: 4 1 180px;
+	padding: 12px 14px 14px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.bookmark-image {
+	width: 33%;
+	flex: 1 1 180px;
+	display: block;
+	position: relative;
+	object-fit: cover;
+	border-radius: 1px;
+}
+
+.bookmark-description {
+	color: rgba(55, 53, 47, 0.6);
+	font-size: 0.75em;
+	overflow: hidden;
+	max-height: 4.5em;
+	word-break: break-word;
+}
+
+.bookmark-href {
+	font-size: 0.75em;
+	margin-top: 0.25em;
+}
+
+.sans { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol"; }
+.code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; }
+.serif { font-family: Lyon-Text, Georgia, YuMincho, "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", "Songti TC", "Songti SC", "SimSun", "Nanum Myeongjo", NanumMyeongjo, Batang, serif; }
+.mono { font-family: iawriter-mono, Nitti, Menlo, Courier, monospace; }
+.pdf .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol", 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC', 'Noto Sans CJK KR'; }
+
+.pdf .code { font-family: Source Code Pro, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC', 'Noto Sans Mono CJK KR'; }
+
+.pdf .serif { font-family: PT Serif, Lyon-Text, Georgia, YuMincho, "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", "Songti TC", "Songti SC", "SimSun", "Nanum Myeongjo", NanumMyeongjo, Batang, serif, 'Twemoji', 'Noto Color Emoji', 'Noto Sans CJK SC', 'Noto Sans CJK KR'; }
+
+.pdf .mono { font-family: PT Mono, iawriter-mono, Nitti, Menlo, Courier, monospace, 'Twemoji', 'Noto Color Emoji', 'Noto Sans Mono CJK SC', 'Noto Sans Mono CJK KR'; }
+
+.highlight-default {
+}
+.highlight-gray {
+	color: rgb(155,154,151);
+}
+.highlight-brown {
+	color: rgb(100,71,58);
+}
+.highlight-orange {
+	color: rgb(217,115,13);
+}
+.highlight-yellow {
+	color: rgb(223,171,1);
+}
+.highlight-teal {
+	color: rgb(15,123,108);
+}
+.highlight-blue {
+	color: rgb(11,110,153);
+}
+.highlight-purple {
+	color: rgb(105,64,165);
+}
+.highlight-pink {
+	color: rgb(173,26,114);
+}
+.highlight-red {
+	color: rgb(224,62,62);
+}
+.highlight-gray_background {
+	background: rgb(235,236,237);
+}
+.highlight-brown_background {
+	background: rgb(233,229,227);
+}
+.highlight-orange_background {
+	background: rgb(250,235,221);
+}
+.highlight-yellow_background {
+	background: rgb(251,243,219);
+}
+.highlight-teal_background {
+	background: rgb(221,237,234);
+}
+.highlight-blue_background {
+	background: rgb(221,235,241);
+}
+.highlight-purple_background {
+	background: rgb(234,228,242);
+}
+.highlight-pink_background {
+	background: rgb(244,223,235);
+}
+.highlight-red_background {
+	background: rgb(251,228,228);
+}
+.block-color-default {
+	color: inherit;
+	fill: inherit;
+}
+.block-color-gray {
+	color: rgba(55, 53, 47, 0.6);
+	fill: rgba(55, 53, 47, 0.6);
+}
+.block-color-brown {
+	color: rgb(100,71,58);
+	fill: rgb(100,71,58);
+}
+.block-color-orange {
+	color: rgb(217,115,13);
+	fill: rgb(217,115,13);
+}
+.block-color-yellow {
+	color: rgb(223,171,1);
+	fill: rgb(223,171,1);
+}
+.block-color-teal {
+	color: rgb(15,123,108);
+	fill: rgb(15,123,108);
+}
+.block-color-blue {
+	color: rgb(11,110,153);
+	fill: rgb(11,110,153);
+}
+.block-color-purple {
+	color: rgb(105,64,165);
+	fill: rgb(105,64,165);
+}
+.block-color-pink {
+	color: rgb(173,26,114);
+	fill: rgb(173,26,114);
+}
+.block-color-red {
+	color: rgb(224,62,62);
+	fill: rgb(224,62,62);
+}
+.block-color-gray_background {
+	background: rgb(235,236,237);
+}
+.block-color-brown_background {
+	background: rgb(233,229,227);
+}
+.block-color-orange_background {
+	background: rgb(250,235,221);
+}
+.block-color-yellow_background {
+	background: rgb(251,243,219);
+}
+.block-color-teal_background {
+	background: rgb(221,237,234);
+}
+.block-color-blue_background {
+	background: rgb(221,235,241);
+}
+.block-color-purple_background {
+	background: rgb(234,228,242);
+}
+.block-color-pink_background {
+	background: rgb(244,223,235);
+}
+.block-color-red_background {
+	background: rgb(251,228,228);
+}
+.select-value-color-default { background-color: rgba(206,205,202,0.5); }
+.select-value-color-gray { background-color: rgba(155,154,151, 0.4); }
+.select-value-color-brown { background-color: rgba(140,46,0,0.2); }
+.select-value-color-orange { background-color: rgba(245,93,0,0.2); }
+.select-value-color-yellow { background-color: rgba(233,168,0,0.2); }
+.select-value-color-green { background-color: rgba(0,135,107,0.2); }
+.select-value-color-blue { background-color: rgba(0,120,223,0.2); }
+.select-value-color-purple { background-color: rgba(103,36,222,0.2); }
+.select-value-color-pink { background-color: rgba(221,0,129,0.2); }
+.select-value-color-red { background-color: rgba(255,0,26,0.2); }
+
+.checkbox {
+	display: inline-flex;
+	vertical-align: text-bottom;
+	width: 16;
+	height: 16;
+	background-size: 16px;
+	margin-left: 2px;
+	margin-right: 5px;
+}
+
+.checkbox-on {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20width%3D%2216%22%20height%3D%2216%22%20fill%3D%22%2358A9D7%22%2F%3E%0A%3Cpath%20d%3D%22M6.71429%2012.2852L14%204.9995L12.7143%203.71436L6.71429%209.71378L3.28571%206.2831L2%207.57092L6.71429%2012.2852Z%22%20fill%3D%22white%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+
+.checkbox-off {
+	background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%3Crect%20x%3D%220.75%22%20y%3D%220.75%22%20width%3D%2214.5%22%20height%3D%2214.5%22%20fill%3D%22white%22%20stroke%3D%22%2336352F%22%20stroke-width%3D%221.5%22%2F%3E%0A%3C%2Fsvg%3E");
+}
+	
+</style></head><body><article id="75625d9f-edb1-4557-b1ee-386547518753" class="page sans"><header><div class="page-header-icon undefined"><span class="icon">📌</span></div><h1 class="page-title">为什么牛逼的程序员都不用 “ ! = null &quot; 做判空？</h1></header><div class="page-body"><p id="ee46c2bf-a1ab-4664-a88c-cf5ba1e0ba7f" class=""><strong>问题</strong></p><p id="a620844f-e5b5-41dc-93d2-fe139e472b38" class="">为了避免空指针调用，我们经常会看到这样的语句</p><pre id="bc2710b8-70af-4dab-999d-c8cc3cd6c3ce" class="code code-wrap"><code>...if (someobject != null) {    someobject.doCalc();}...
+</code></pre><p id="14056301-9c8e-480b-8c9e-d20b262a1909" class="">最终，项目中会存在大量判空代码，多么丑陋繁冗！如何避免这种情况？我们是否滥用了判空呢？</p><p id="fb7b4505-c315-4a02-af02-c2caf46e2d5a" class=""><strong>精华回答</strong></p><p id="d5fc4f3b-6fe8-4dbb-bc50-1aa52ef27098" class="">这是初、中级程序猿经常会遇到的问题。他们总喜欢在方法中返回null，因此，在调用这些方法时，也不得不去判空。另外，也许受此习惯影响，他们总潜意识地认为，所有的返回都是不可信任的，为了保护自己程序，就加了大量的判空。</p><p id="b5848d53-607e-4393-ae1b-933d321c99a4" class="">吐槽完毕，回到这个题目本身：</p><p id="38608cbd-3821-4f63-93e7-178f70c5894d" class="">进行判空前，请区分以下两种情况：</p><p id="f845cf1e-2d77-40c9-b8e0-c7ef1261624f" class="">1、null 是一个有效有意义的返回值(Where null is a valid response in terms of the contract; and)</p><p id="5fd96892-9735-4572-8630-b1cea7cf9bc5" class="">2、null是无效有误的(Where it isn&#x27;t a valid response.)</p><p id="0d4341e5-933e-4912-8116-7d40d6866ae8" class="">你可能还不明白这两句话的意思，不急，继续往下看，接下来将详细讨论这两种情况</p><p id="cb9d4d3d-b3c4-4d15-8e0b-4d659efd990b" class=""><strong>先说第2种情况</strong></p><p id="f284fa53-e7c5-4139-8b6f-f078a779a75d" class="">null就是一个不合理的参数，就应该明确地中断程序，往外抛错误。这种情况常见于api方法。例如你开发了一个接口，id是一个必选的参数，如果调用方没传这个参数给你，当然不行。你要感知到这个情况，告诉调用方“嘿，哥们，你传个null给我做甚&quot;。</p><p id="b865310e-7f85-4169-af08-baabc58ba758" class="">相对于判空语句，更好的检查方式有两个</p><p id="4332b6b7-2e00-401f-8d13-11dc625ce81a" class="">(1)assert语句，你可以把错误原因放到assert的参数中，这样不仅能保护你的程序不往下走，而且还能把错误原因返回给调用方，岂不是一举两得。（原文介绍了assert的使用，这里省略）</p><p id="7daac335-e511-4cca-8499-0d290c7fdb99" class="">(2)也可以直接抛出空指针异常。上面说了，此时null是个不合理的参数，有问题就是有问题，就应该大大方方往外抛。</p><p id="60e1bec8-a753-4411-9f13-a8910a50ddcf" class=""><strong>第1种情况会更复杂一些。</strong></p><p id="d2dd799f-e631-42e2-ba65-62f32b9b0dfe" class="">这种情况下，null是个”看上去“合理的值，例如，我查询数据库，某个查询条件下，就是没有对应值，此时null算是表达了“空”的概念。</p><p id="3c1f20f3-2497-4db8-944c-5a0b68570d76" class=""><strong>这里给一些实践建议：</strong></p><p id="f9231b5f-8b72-48ea-993f-79a9fcd6fe35" class="">1、假如方法的返回类型是collections，当返回结果是空时，你可以返回一个空的collections（empty list),而不要返回null，这样调用侧就能大胆地处理这个返回，例如调用侧拿到返回后，可以直接print list.size()，又无需担心空指针问题。（什么？想调用这个方法时，不记得之前实现该方法有没按照这个原则？所以说，代码习惯很重要！如果你养成习惯，都是这样写代码（返回空collections而不返回null)，你调用自己写的方法时，就能大胆地忽略判空）</p><p id="a1d5f14e-09dd-41b3-8567-85eb2654e248" class="">2、返回类型不是collections，又怎么办呢？</p><p id="62bcb462-0d4d-4733-a204-906afb295162" class="">那就返回一个空对象（而非null对象），下面举个“栗子”，假设有如下代码</p><pre id="73acc713-371a-4c62-82ed-efbf2dde8f1f" class="code code-wrap"><code>public interface Action {  void doSomething();} public interface Parser {  Action findAction(String userInput);}
+</code></pre><p id="b5fff7d1-269c-4cad-9683-b7346ff082cc" class="">其中，Parse有一个接口FindAction，这个接口会依据用户的输入，找到并执行对应的动作。假如用户输入不对，可能就找不到对应的动作（Action），因此findAction就会返回null，接下来action调用doSomething方法时,就会出现空指针。</p><p id="a0db2861-f123-47af-aea6-c683be9a7b5d" class="">解决这个问题的一个方式，就是使用Null Object pattern（空对象模式）</p><p id="34a903af-3d6d-4d5d-9bd8-845902301ef6" class=""><strong>我们来改造一下</strong></p><p id="a0d17836-db05-4c0d-b989-8ee945dc8ab2" class="">类定义如下，这样定义findAction方法后，确保无论用户输入什么，都不会返回null对象</p><pre id="7d89b241-82b3-4497-8997-c70e7eb5ca82" class="code code-wrap"><code>public class MyParser implements Parser {  private static Action DO_NOTHING = new Action() {    public void doSomething() { /* do nothing */ }  };   public Action findAction(String userInput) {    // ...    if ( /* we can&#x27;t find any actions */ ) {      return DO_NOTHING;    }  }}
+</code></pre><p id="65d9bec2-6aed-4082-a586-0967d74fbf04" class="">对比下面两份调用实例</p><p id="bb13d97a-2549-4b36-9b90-3435f91052ac" class="">1、冗余:每获取一个对象，就判一次空</p><pre id="623b04ea-974f-4458-a672-35b455a32d68" class="code code-wrap"><code>Parser parser = ParserFactory.getParser();if (parser == null) {  // now what?  // this would be an example of where null isn&#x27;t (or shouldn&#x27;t be) a valid response}Action action = parser.findAction(someInput);if (action == null) {  // do nothing} else {  action.doSomething();}
+</code></pre><p id="e2a98e04-838d-4bb6-8a3d-66181c7bea7d" class="">2、精简</p><pre id="2b386ff7-5a23-4714-87fc-07c18dd9c123" class="code code-wrap"><code>ParserFactory.getParser().findAction(someInput).doSomething();
+</code></pre><p id="ae81694c-bcc0-48a2-8f8f-34970bf7bea3" class="">因为无论什么情况，都不会返回空对象，因此通过findAction拿到action后，可以放心地调用action的方法。</p><p id="6f045764-24cc-4996-9d8e-5a7f61cb7d68" class=""><strong>其他回答精选：</strong></p><p id="017d3ddc-0afe-41ac-8ae0-7cbcf2fc9125" class="">1、如果要用equal方法，请用object&lt;不可能为空&gt;.equal(object&lt;可能为空&gt;))</p><p id="55388513-91a1-408e-b68d-ba6203d0b588" class="">例如使用  ：</p><pre id="9aa0e254-e238-4986-a2d6-77bbfa7be714" class="code code-wrap"><code>&quot;bar&quot;.equals(foo)
+</code></pre><p id="44f60888-b05c-4cd4-8e72-78dea1574868" class="">而不是</p><pre id="61700b17-7c59-4056-abb5-9dc9f274a088" class="code code-wrap"><code>foo.equals(&quot;bar&quot;)
+</code></pre><p id="85532291-9463-44e3-b41d-b1ce5c5eb78f" class="">2、Java8或者guava lib中，提供了Optional类，这是一个元素容器，通过它来封装对象，可以减少判空。不过代码量还是不少。不爽。</p><p id="f47b9292-625f-4744-bea2-0671c44faea8" class="">3、如果你想返回null，请停下来想一想，这个地方是否更应该抛出一个异常。</p></div></article></body></html>
