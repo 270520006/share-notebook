@@ -1,0 +1,9 @@
+﻿字符集,说明
+US-ASCII,即英文的ASCII
+ISO-8859-1,Latin-1拉丁字符，包含中文、日文等
+UTF-8,变长unicode字符(1-3个字节)，国际通用
+UTF-16BE,"定长unicode字符(2个字节)，大端Big-endian表示
+高字节低地址0x12 | 0x34 | 0x56 | 0x78"
+UTF-16LE,"定长unicode字符(2个字节)，小端little-endian表示
+低字节低地址0x78 | 0x56 | 0x34 | 0x12"
+UTF-16,"文件中开头指定大端还是小端表示方式，即BOM(Byte-Order-Mark)：FE FF 表示大端, FF FE 表示小端."

@@ -1,0 +1,11 @@
+﻿抽象类,说明,常用方法
+InputStream,字节输入流的父类，数据单位为字节,"intread()
+void close()"
+OutputStream,字节输出流的父类，数据单位为字节,"void write(int)
+void flush()
+void close()"
+Reader,字符输入流的父类，数据单位为字符,"intread()
+void close()"
+Writer,字符输出流的父类，数据单位为字符,"void write(String)
+void flush()
+void close()"
