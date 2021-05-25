@@ -1,0 +1,4 @@
+﻿"用户表 user  , 转换为key-value存储",Column,null,Column 1,Column 2
+userid,username,passworde,email,富贵 刘
+9,Lisi,1111111,mailto:lisi@163.com,富贵 刘
+,,,,富贵 刘

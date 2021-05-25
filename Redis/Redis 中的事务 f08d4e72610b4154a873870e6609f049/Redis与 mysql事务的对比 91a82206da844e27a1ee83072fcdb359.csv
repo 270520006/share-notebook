@@ -1,0 +1,5 @@
+﻿Property,Mysql,Redis,Date
+开启,start transaction,muitl,
+语句,普通sql,普通命令,
+失败,rollback 回滚,discard 取消,
+成功,commit,exec,
