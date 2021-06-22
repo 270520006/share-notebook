@@ -63,6 +63,19 @@
 
 链接：https://www.processon.com/view/60a30f487d9c08302444fa4d
 
+### 12. 九大分布式ID生成策略
+
+链接：https://www.processon.com/view/60cdd6d6e0b34d0500342cf0
+
+### 13. 架构师基础理论
+
+链接：https://www.processon.com/view/60c47a451e085306cf767116
+
+### 14. Mybatis的演变
+我想：你看完这个文档，再看Mybatis的源码的话，应该很简单了吧!
+
+链接：https://www.processon.com/view/60c73931e401fd4a04b489ea
+
 
 
 想做的笔记很多，可以做的笔记也很多！这是我4月底开始画的流程图，后面会陆续的完善前面的笔记！增加新的笔记！
