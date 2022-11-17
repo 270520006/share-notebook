@@ -1,0 +1,282 @@
+# Oracle RMAN全量+增量备份脚本（含定时备份任务脚本）
+
+```linux
+su - oracle
+```
+
+```linux
+# 创建备份文件
+mkdir /backup/rmanbak
+```
+
+## 一、 全量备份
+
+如果要用RMAN做迁移，要打开块跟踪，可以提升增量备份的速度。打开和关闭块跟踪的方法见第五部分。
+
+
+
+根据cpu核数，设置备份通道数
+
+```linux
+--- 查看linux 核数
+cat /proc/cpuinfo| grep "cpu cores"| uniq
+```
+
+
+
+```linux
+vi /backup/rmanbak/RMAN_L0_instance_bak.sh
+```
+
+```shell
+#! /bin/bash
+export NLS_LANG='american_america.AL32UTF8'
+source /home/oracle/.bash_profile
+current_day=`date +%Y%m%d`
+if [ ! -d /backup/rmanbak/$current_day ]
+then
+    mkdir -p /backup/rmanbak/$current_day
+rman target / <<EOF
+run{
+allocate channel d1 type disk;
+allocate channel d2 type disk;
+allocate channel d3 type disk;
+allocate channel d4 type disk;
+allocate channel d5 type disk;
+allocate channel d6 type disk;
+allocate channel d7 type disk;
+allocate channel d8 type disk;
+backup as compressed backupset incremental level 0 database format '/backup/rmanbak/$current_day/ORCL_L0_instance_%s_%d_%T_%u.bkp';
+sql 'alter system archive log current';
+sql 'alter system archive log current';
+sql 'alter system archive log current';
+backup archivelog all format '/backup/rmanbak/$current_day/ORCL_arclog_instance_%s_%d_%T_%u.bkp' not backed up 1 times;
+backup spfile format '/backup/rmanbak/$current_day/ORCL_spfile_instance_%s_%d_%T_%u.bkp';
+backup current controlfile format '/backup/rmanbak/$current_day/ORCL_controlfile_instance_%s_%d_%T_%u.bkp';
+delete noprompt ARCHIVELOG until time 'SYSDATE-30';
+crosscheck archivelog all;
+delete noprompt expired archivelog all;
+crosscheck backup;
+delete expired backup;
+release channel d1;
+release channel d2;
+release channel d3;
+release channel d4;
+release channel d5;
+release channel d6;
+release channel d7;
+release channel d8;
+}
+EOF
+else
+    echo "Database full backup on $current_day has been completed;"  
+fi
+cd /backup/rmanbak
+tar -zcvf $current_day.tar.gz $current_day
+rm -rf $current_day
+```
+
+
+
+## 二、 增量备份
+
+```linux
+vi /backup/rmanbak/RMAN_L1_instance_bak.sh
+```
+
+```shell
+#! /bin/bash
+export NLS_LANG='american_america.AL32UTF8'
+source /home/oracle/.bash_profile
+current_day=`date +%Y%m%d`
+if [ ! -d /backup/rmanbak/$current_day ]
+then
+    mkdir -p/backup/rmanbak/$current_day
+rman target / <<EOF
+run{
+allocate channel d1 type disk;
+allocate channel d2 type disk;
+allocate channel d3 type disk;
+allocate channel d4 type disk;
+allocate channel d5 type disk;
+allocate channel d6 type disk;
+allocate channel d7 type disk;
+allocate channel d8 type disk;
+backup as compressed backupset incremental level 1 cumulative database format '/backup/rmanbak/$current_day/ORCL_L1_instance_%s_%d_%T_%u.bkp';
+sql 'alter system archive log current';
+sql 'alter system archive log current';
+sql 'alter system archive log current';
+backup archivelog all format '/backup/rmanbak/$current_day/ORCL_arclog_instance_%s_%d_%T_%u.bkp' not backed up 1 times;
+backup spfile format '/backup/rmanbak/$current_day/ORCL_spfile_instance_%s_%d_%T_%u.bkp';
+backup current controlfile format '/backup/rmanbak/$current_day/ORCL_controlfile_instance_%s_%d_%T_%u.bkp';
+delete noprompt ARCHIVELOG until time 'SYSDATE-30';
+crosscheck archivelog all;
+delete noprompt expired archivelog all;
+crosscheck backup;
+delete expired backup;
+release channel d1;
+release channel d2;
+release channel d3;
+release channel d4;
+release channel d5;
+release channel d6;
+release channel d7;
+release channel d8;
+}
+EOF
+else
+    echo "Database incremental backup on $current_day has been completed;"  
+fi
+cd /backup/rmanbak
+tar -zcvf $current_day.tar.gz $current_day
+rm -rf $current_day
+```
+
+
+
+## 三、定期删除备份
+
+```linux
+vi /backup/rmanbak/del_rman_instance_bak.sh
+```
+
+```shell
+#!/bin/bash
+removedir=/backup/rmanbak
+dt=`date +%Y%m%d -d "30 day ago"`
+Rdir=$removedir
+for subdir in `ls $Rdir`;
+do
+subdir=`echo ${subdir//.*/}`
+#subdir=`echo ${subdir}`
+if [ "${subdir}" -lt "${dt}" ];
+then
+rm -rf $Rdir/$subdir.tar.gz >/dev/null
+#echo "the directory $Rdir/$subdir has been removed."
+fi
+chmod 775 /backup/rmanbak/RMAN_L0_instance_bak.sh
+chmod 775 /backup/rmanbak/RMAN_L1_instance_bak.sh
+chmod 775 /backup/rmanbak/del_rman_instance_bak.sh
+```
+
+
+
+## 四、定时备份任务
+
+```linux
+crontab -e
+```
+
+```crontab
+-- 1、每个月的晚上12点删除备份的压缩文件
+-- 2、每周天执行一次全备份
+-- 3、每周一至周六执行一次增量备份
+0 0 1 * * /backup/rmanbak/del_rman_instance_bak.sh >> /backup/rmanbak/del_rman_backup.log 2>&1
+0 0 * * 0 /backup/rmanbak/RMAN_L0_instance_bak.sh >> /backup/rmanbak/rman_backup_L0.log 2>&1
+0 0 * * 1,2,3,4,5,6 /backup/rmanbak/RMAN_L1_instance_bak.sh >> /backup/rmanbak/rman_backup_L1.log 2>&1
+```
+
+
+
+## 五、Oracle相关知识
+
+```text
+Block Change Tracking（块跟踪）主要用于RMAN备份的增量备份，将自从上一次备份以来数据块的变化记录到block change tracking文件中，相关后台进程CTWR（Change Tracking Writer）,
+
+主要目的是改善增量备份性能，RMAN可以不再扫描整个文件以查找变更数据。第一个0级的增量备份扫描整个datafile。 随后的增量备份使用block changetracking file的信息，只扫描自上次备份以
+
+来被标记为change 的block，RMAN 不会对该文件进行备份。。从10g开始提供此功能。
+trace 记录保留
+
+Oracle 会自动管理change tracking file的大小，只保留最近最近8次blockchange 的信息。 超过8次， 那么最前面的block bitmap 信息会被current change 覆盖。要考虑change tracking file
+
+的8次限制与备份策略的关系。 如果我们在0级备份之后又进行了7次不同的增量备份，那么这时block change tracking 就包含了8个bitmaps信息。 如果我们在进行1级的增量备份，那么此时的增量
+
+就不是最优的， 还会扫描整个data file。 因为我们之前0级的bitmap信息被我们当前的bitmap 信息覆盖掉了，这样就没有了参考的依据。所以，两次全量备份的时间间隔要控制在8天以内（包含）。
+
+trace 文件存放
+
+oracle 不建议使用RAWdevice来存放block tracking. 如果是RAC一定要放到共享存储上。
+
+trace 文件重置
+
+change tracking file 变为无效。
+RMAN 进行恢复时。
+ 文件大小
+
+与数据库中的数据文件总大小相关，与数据量无关。每次递增10M，初始化文件时，300G 数据文件会配置10M ,600G 数据文件会配置20m .1T 及以上数据文件以32M 为标准。
+每个datafile，在tracking file里最少需要分配320k的空间，所以如果有大量的小data file， change tracking file 也会相对较大。
+```
+
+### 【打开和关闭块跟踪】
+
+```sql
+RAC:
+
+#查看是否开启了块跟踪
+select * from v$block_change_tracking;
+
+#打开块跟踪
+alter database enable block change tracking using file '+DATA';
+
+#关闭块跟踪
+alter database disable block change tracking;
+
+非RAC:
+#打开块跟踪
+alter database enable block change tracking using file '/backup/block.trc';
+#关闭块跟踪
+alter database disable block change tracking;
+```
+
+### 【如果提高RMAN备份速度】
+
+```linux
+1. 开启多通道
+通道数据与cpu核数有关系
+2. 设置块跟踪
+用于提升增量备份的速度（因为备份时只检查修改过的块）
+3. 设置压缩级别为medium
+综合看，medium的备份和恢复速度比较好。
+
+CONFIGURE BACKUP OPTIMIZATION ON;
+CONFIGURE COMPRESSION ALGORITHM 'MEDIUM' AS OF RELEASE 'DEFAULT' OPTIMIZE FOR LOAD TRUE;
+```
+
+### 【归档模式】
+
+```sql
+ -- 查看归档模式
+archive log list;
+ 
+-- 归档模式例子 
+Database log mode	       Archive Mode
+Automatic archival	       Enabled
+Archive destination	       /opt/oracle/product/19c/dbhome_1/dbs/arch
+Oldest online log sequence     8
+Next log sequence to archive   10
+Current log sequence	       10
+
+-- 开启归档模式
+shutdown immediate;
+startup mount;
+alter database archivelog;
+alter database open;
+```
+
+### 【非归档模式】
+
+```sql
+-- 查看非归档模式
+archive log list;
+-- 非归档模式例子
+Database log mode	       No Archive Mode
+Automatic archival	       Disabled
+Archive destination	       /opt/oracle/product/19c/dbhome_1/dbs/arch
+Oldest online log sequence     8
+Current log sequence	       10
+```
+
+参考资料
+
+https://www.modb.pro/db/170039
