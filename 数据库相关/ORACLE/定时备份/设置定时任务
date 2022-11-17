@@ -1,0 +1,4 @@
+# crontab -e
+0 0 1 * * /home/oracle/rman_script/del_rman_instance_bak.sh >> /home/oracle/rman_script/rman_log/del_rman_backup.log 2>&1
+0 0 * * 0 /home/oracle/rman_script/rman_L0_full_bak.sh >> /home/oracle/rman_script/rman_log/rman_backup_L0.log 2>&1
+0 0 * * 1,2,3,4,5,6 /home/oracle/rman_script/rman_L1_incr_bak.sh >> /home/oracle/rman_script/rman_log/rman_backup_L1.log 2>&1
