@@ -1,0 +1,268 @@
+# ORA-00001
+
+unique constrant (xxxxxxxxxxxxxxxxxxx)  violated
+
+--- 违反唯一约束
+
+
+
+原因:
+
+主键值出现冲突使得逐渐值重复
+
+
+
+解决方法:
+
+Plan-A：首先检查主键是哪个字段,使用max（）函数查询出最大值。
+
+Plan-B：Oracle数据库，我是使用序列作为主键自增，查看当前序列，nextValue的值要大于当前主键最大值。
+
+````sql
+-- 第一步：查询违反约束的序列
+select a.constraint_name,a.constraint_type,b.column_name,b.table_name
+from user_constraints a inner join user_cons_columns b on a.table_name=b.table_name
+where a.constraint_name='xxxx'
+
+-- 第二步：查询序列的下一次值是多少
+select xxxx_seq.nextval from dual;
+
+-- 第三步：查询序列中最大值
+select max(这个值是你的表的主键值，一般为id,有的公司会用其它的比如rid) from xxxx
+
+-- 第四步：修改序列值大小 加1000 --修改步进，例如没有修改前的序列值为20000，执行此条会将20000+1000，此时序列开始值为21000
+alter sequence xxxx_seq increment by 1000;
+
+-- 第五步：验证序列是否修改成功
+select xxxx_seq.nextval from dual;
+
+-- 第六步：调整步进 -- 修改步进，例如没有修改前的序列值为20000，执行此条会将20000+1，此时序列开始值为20001，
+alter sequence xxxx_seq increment by 1;
+
+````
+
+
+
+参考地址:
+
+https://www.cnblogs.com/adasfsdfA/p/14325487.html
+
+
+
+# ORA-00054
+
+resource busy and acquire with NOWAIT specified or timeout expired
+
+--- 资源繁忙并使用指定的 NOWAIT 获取或超时已过期
+
+
+
+原因：
+
+其他[Session](https://so.csdn.net/so/search?q=Session&spm=1001.2101.3001.7020)已经对目标表做了操作，且未提交操作，导致锁表，新的Session无法再对表进行DDL操作。
+
+
+
+解决方法:
+
+Plan-A：等待原session执行完对表的操作，或[commit](https://so.csdn.net/so/search?q=commit&spm=1001.2101.3001.7020)对表的操作。
+
+Plan-B：关闭原会话。
+
+
+
+````sql
+-- 查询被锁的会话ID
+select session_id from v$locked_object;
+---- 查询结果：SESSION_ID-------9
+ 
+--查询上面会话的详细信息：
+SELECT sid, serial#, username, osuser FROM v$session where sid = 9;
+---- 查询结果：serial#------99
+ 
+-- 将上面锁定的会话关闭：
+ALTER SYSTEM KILL SESSION '9,99';
+````
+
+
+
+参考地址：
+
+https://blog.csdn.net/wlf2601567/article/details/82623705
+
+
+
+# ORA-00942
+
+table or view does not exist
+
+--- 表或视图不存在
+
+
+
+原因:
+
+- 大小写
+- " xxx " oracle 不会将其转换为大写
+- 权限问题
+
+
+
+解决方法:
+
+给用户赋权
+
+````sql
+grant select any table to xxxx;
+````
+
+
+
+参考地址:
+
+https://blog.csdn.net/yangchangfu111/article/details/53992962
+
+
+
+# ORA-01013
+
+user requested cancel of current operatioin
+
+--- 用户请求取消当前操作
+
+
+
+原因：
+
+oracle 锁表了 ，导致了sql 语句一直在运行 无法提交事务。
+
+
+
+解决方法：
+
+将数据中的事务进行提交，或者回滚即可
+
+
+
+参考地址:
+
+https://blog.csdn.net/baidu_37107022/article/details/81259148
+
+
+
+# ORA-01427
+
+single-row subquery returns more than one row
+
+--- 单行子查询返回多于一行
+
+
+
+原因:
+
+子查询中有返回多行的情况
+
+
+
+解决方法:
+
+修改sql语句添使得子查询返回只有一行
+
+如果查询有重复行 可以加上  ‘ rownum < 2 ’
+
+
+
+参考地址:
+
+http://blog.chinaunix.net/uid-23284114-id-3466252.html
+
+
+
+# ORA-01654
+
+unable to extend index xxx by 8192 in tablespace xxx
+
+不能扩展该索引所在的表空间
+
+
+
+原因:
+
+可能该表空间满了 及可能索引的的表空间不够
+
+
+
+排除方法:
+
+```mysql
+-- 1、可能是索引表空间不足
+select sum(bytes/1024/1024) sizeMB from dba_free_space z where z.tablespace_name='表空间名';
+-- 查看还剩多少空间
+
+-- 2、查看索引名
+select s.index_name,
+       s.table_name,
+       s.tablespace_name,
+       s.initial_extent,
+       s.next_extent
+  from user_indexes s
+ where s.index_name = '索引名'
+ 
+/*
+ INDEX_NAME 		 TABLE_NAME T		  ABLESPACE_NAME	      INITIAL_EXTENT 	  NEXT_EXTENT
+IDX_INVALID_PICNAME  T_INVALID_PICTURES   DIMS_INVALID_PICTURE2   40960 			  732576768
+*/
+-- 该索引的 NEXT_EXTENT 过大
+select file_name,tablespace_name,bytes/1024/1024 from dba_data_files where tablespace_name='表空间名';
+```
+
+
+
+解决办法:
+
+````mysql
+/*
+通过计算 400M的剩余空间
+不能满足 NEXT_EXTENT 的700MB空间
+*/
+-- 1、可以通过加大数据文件
+alter database datafile 'D:ORACLEORADATADMSDBDIMS_INVALID_PICTURE2.DBF' resize 1000M
+
+-- 2、可以通过增加数据文件
+alter database &tablespace_name add tempfile '&datafile_name' size 30G;
+````
+
+
+
+
+
+# ORA-06508
+
+PLSQL：could not find program unit being called
+
+--  无法找到正在调用的程序单元
+
+**原因**:
+
+对于全局变量，每一个session会生成一个本地copy，如果程序重新编译的话，就会因程序里原变量找不到而丢弃该变量，继而导致这个错误。
+
+也就是说在一个会话中调用程序包package时，会生成package中全局变量的副本，如果在另一个会话中对此package进行编译就会使前一个会话中的副本失效，故而产生错误。
+
+要想避免这个错误，可以使程序捕获ORA-06508:的错误进行处理，也可以重新初始化会话
+
+1.若PACKAGE中定义了全局变量或者全局常量，则此类包被称为有状态的包。
+
+2.若有状态的包编译了，则上层应用连接池会认为该包无效了。
+
+3.解决方式有两种
+
+a.)简单粗暴的，直接重启上层应用。
+
+b.)尽量不要在包中定义全局变量或者全局常量，若必须定义，则将全局变量或者全局常量定义到伴生包中。
+
+
+
+
+
+
+
